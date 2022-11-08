@@ -1,0 +1,565 @@
+# Plan
+## Coverage Goal
+Our coverage goal for the model and service classes of the PetClinic application is 75% line coverage and 100% branch coverage on JaCoCo. 
+
+We set a 75% line coverage goal because we decided not to write unit tests for trivial methods like getters, setters and toString(). Specifically, we believe that getters and setters that simply get and set values without any other logic are trivial. If there is any conditional logic, we do test it. When we were reading through the code, we noticed that many methods are of this type. For example, half of the methods in the Owner class are trivial getters and setters. 
+
+We set a 100% branch coverage since we want to cover all methods of different possible branches. Jacoco’s branch coverage evaluation only takes into account the methods with if or switch statements ([See Jacoco](https://www.eclemma.org/jacoco/trunk/doc/counters.html#:~:text=Branches%20(C1%20Coverage),information%20in%20the%20class%20files.)), therefore it would not count the trivial setters and getters into the branch coverage.
+
+We decided on a lower line coverage than branch coverage because we expected to be writing tests for all branches, while we would not be writing tests for the trivial methods that do not have branches.
+
+## Testing Techniques
+We used white-box testing because we do not have sufficient documentation on the methods so we cannot do black-box testing reliably. Viewing the system from a back-box perspective would require us to be more aware of the developers’ intentions when creating the methods. However, with white-box testing, we are able to test the code as we see it to guarantee that it is functional. Furthermore, we noticed that some of the method descriptions do not line up with the code itself. For example, in the Owner class, both `getPet(String name)` and `getPet(String name, boolean ignoreNew)` actually return a Pet object while the documentation says that they should each return a boolean.
+
+Tests were selected in order to cover every branch. This means that we made at least one test case per branch. We decided to write tests only for non-trivial methods. Before writing tests for each class, we looked at the overall dependencies between the methods and decided to write tests for the methods with the least dependencies first and the method depending on trivial methods that do not need to be tested. This allowed us to use those tested methods for other methods that depended on them. For example, for the Owner.java class, we wrote tests and tested the `.getPetsInternal()` first since it only depends on the trivial setter `setPetsInternal(pets)`. 
+
+Some of the methods that we tested would call methods from other classes. We used Mockito to mock the foreign methods to ensure that the tests would run in isolation from other classes. That is how we stubbed those methods.
+
+
+# Report
+
+## Test Input Data
+We did not put input data in an external resources file because we only used a few constant Strings relevant to one file at a time. We created helper methods in each class to create new objects instead which is similar to what was done in the sample code. 
+
+## List of Test Cases
+[OwnerTests.java](https://github.com/McGill-ECSE429-Fall2022/project-proj-10/blob/master/src/test/java/org/springframework/samples/petclinic/model/OwnerTests.java)
+
+<table>
+  <tr>
+   <td>Method Under Test
+   </td>
+   <td>Test Case Method Name
+   </td>
+   <td>Input
+   </td>
+   <td>Outputs
+   </td>
+  </tr>
+  <tr>
+   <td>getPetsInternal(): Set&lt;Pet>
+   </td>
+   <td>testGetPetsInternal_Empty()
+   </td>
+   <td>Empty set of pets
+   </td>
+   <td>Asserts that empty set is returned by getPetsInternal()
+   </td>
+  </tr>
+  <tr>
+   <td>getPetsInternal(): Set&lt;Pet>
+   </td>
+   <td>testGetPetsInternal_Multiple()
+   </td>
+   <td>Set of pets containing pets
+   </td>
+   <td>Asserts set of pets returned is the same as the input
+   </td>
+  </tr>
+  <tr>
+   <td>getPets(): void
+   </td>
+   <td>testGetPets()
+   </td>
+   <td>Unsorted lists of pets
+   </td>
+   <td>Assert that Sorted list of pets is returned
+   </td>
+  </tr>
+  <tr>
+   <td>addPet(Pet pet): void
+   </td>
+   <td>testAddPet_NewPet()
+   </td>
+   <td>New pet
+   </td>
+   <td>Assert size of list of pets increased
+   </td>
+  </tr>
+  <tr>
+   <td>addPet(Pet pet): void
+   </td>
+   <td>testAddPet_existingPet()
+   </td>
+   <td>Existing pet
+   </td>
+   <td>- Assert size of initial pets and actual pets are equal \
+- Assert that the list of pets of the owner does not contain the added existing pet
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String, boolean): Pet
+   </td>
+   <td>testGetPet_NonExistent_IgnoreNew()
+   </td>
+   <td>- Non-existent `name= "NonExistent"`
+<p>
+- `ignoreNew=true`
+<p>
+- Added 1 pet with `name=”aPet”` in pets with `id=1`
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns `null`
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String, boolean): Pet
+   </td>
+   <td>testGetPet_NonExistent_Not_IgnoreNew()
+   </td>
+   <td>- Non-existent `name= "NonExistent"`
+<p>
+- `ignoreNew=false`
+<p>
+- Existing pet has id
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns `null`
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String, boolean): Pet
+   </td>
+   <td>testGetPet_NonExistent_IgnoreNew_PetIsNew()
+   </td>
+   <td>- Non-existent `name= "NonExistent"`
+<p>
+- `ignoreNew=true`
+<p>
+- Added 1 pet with `name=”aPet”` in pets without pet id
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns `null`
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String, boolean): Pet
+   </td>
+   <td>testGetPet_DoesExist()
+   </td>
+   <td>- Existing `name = "aPet"`
+<p>
+- `ignoreNew=false`
+<p>
+- Existing pet does not have id
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns the pet (comparing the pet names)
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String, boolean): Pet
+   </td>
+   <td>testGetPet_DoesExist_IgnoreNew_NewPet()
+   </td>
+   <td>- Existing `name = "aPet"`
+<p>
+- `ignoreNew=true`
+<p>
+- Existing pet does not have id
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns `null`
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String, boolean): Pet
+   </td>
+   <td>testGetPet_DoesExist_IgnoreNew_NotNewPet()
+   </td>
+   <td>- Existing `name = "aPet"`
+<p>
+- `ignoreNew=true`
+<p>
+- Existing pet has id
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns the pet (comparing the pet names)
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String, boolean): Pet
+   </td>
+   <td>testGetPet_DoesExist_NotIgnoreNew_NewPet()
+   </td>
+   <td>- Existing `name = "aPet"`
+<p>
+- `ignoreNew=false`
+<p>
+- Existing pet does not have id
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns the pet (comparing the pet names)
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String, boolean): Pet
+   </td>
+   <td>testGetPet_DoesNotExist_NotIgnoreNew_NewPet()
+   </td>
+   <td>- Non-existent `name= "NonExistent"`
+<p>
+- `ignoreNew=false`
+<p>
+- Existing pet does not have id
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns `null`
+   </td>
+  </tr>
+  <tr>
+   <td>getPet(String): Pet
+   </td>
+   <td>testGetPet_NameDoesNotExist
+   </td>
+   <td>- Non-existent `name= "NonExistent"`
+   </td>
+   <td>Assert that when we call `.getPet()` on owner, it returns `null`
+   </td>
+  </tr>
+</table>
+
+
+[PersonTests.java](https://github.com/McGill-ECSE429-Fall2022/project-proj-10/blob/master/src/test/java/org/springframework/samples/petclinic/model/PersonTests.java)
+
+<table>
+  <tr>
+   <td>Method Under Test
+   </td>
+   <td>Test Case Method Name
+   </td>
+   <td>Input
+   </td>
+   <td>Outputs
+   </td>
+  </tr>
+  <tr>
+   <td>setFirstName(String): void
+   </td>
+   <td>testGetSetFirstName()
+   </td>
+   <td>String for a name
+   </td>
+   <td>Assert that when we call `getFirstName()` on person, it returns the same string
+   </td>
+  </tr>
+  <tr>
+   <td>getFirstName(): String
+   </td>
+   <td>testGetSetFirstName()
+   </td>
+   <td>First name of an existing person
+   </td>
+   <td>Assert that when we call `getFirstName()` on person, it returns a string
+   </td>
+  </tr>
+</table>
+
+
+[PetTests.java](https://github.com/McGill-ECSE429-Fall2022/project-proj-10/blob/master/src/test/java/org/springframework/samples/petclinic/model/PetTests.java)
+
+
+<table>
+  <tr>
+   <td>Method Under Test
+   </td>
+   <td>Test Case Method Name
+   </td>
+   <td>Input
+   </td>
+   <td>Outputs
+   </td>
+  </tr>
+  <tr>
+   <td>getVisitsInternal(): Set&lt;Visit> 
+   </td>
+   <td>testGetVisitsInternal_Empty()
+   </td>
+   <td>Empty `visits`
+   </td>
+   <td>Assert that when we call `getVisitsInternal()`, a new empty `Set&lt;>` is returned
+   </td>
+  </tr>
+  <tr>
+   <td>getVisitsInternal(): Set&lt;Visit> 
+   </td>
+   <td>testGetVisitsInternal()
+   </td>
+   <td>3 visits in the system
+   </td>
+   <td>Assert that when we call `getVisitsInternal()`, the `Set&lt;>` of the Pet’s Visits is returned
+   </td>
+  </tr>
+  <tr>
+   <td>getVisits(): List&lt;Visit>
+   </td>
+   <td>testGetVisits()
+   </td>
+   <td>Unsorted lists of visits
+   </td>
+   <td>Assert that list of visits sorted by date is returned
+   </td>
+  </tr>
+  <tr>
+   <td>addVisit(Visit): void
+   </td>
+   <td>testAddVisit()
+   </td>
+   <td>A visit
+   </td>
+   <td>Assert that the visit was added to the pet’s list of visits (by comparing the size of `visits` and verifying that `visits` contains the added visit)
+   </td>
+  </tr>
+</table>
+
+
+[VetTests.java](https://github.com/McGill-ECSE429-Fall2022/project-proj-10/blob/master/src/test/java/org/springframework/samples/petclinic/model/VetTests.java)
+
+
+<table>
+  <tr>
+   <td>Method Under Test
+   </td>
+   <td>Test Case Method Name
+   </td>
+   <td>Input
+   </td>
+   <td>Outputs
+   </td>
+  </tr>
+  <tr>
+   <td>getSpecialtiesInternal(): Set&lt;Specialty>
+   </td>
+   <td>testGetSpecialtiesInternal()
+   </td>
+   <td>Empty `specialties`
+   </td>
+   <td>Assert that when we call `getSpecialtiesInternal()`, a new empty `Set&lt;>` is returned
+   </td>
+  </tr>
+  <tr>
+   <td>getSpecialtiesInternal(): Set&lt;Specialty>
+   </td>
+   <td>testGetSpecialtiesInternal_Multiple()
+   </td>
+   <td>3 specialties in the system
+   </td>
+   <td>Assert that when we call `getSpecialtiesInternal()`, the `Set&lt;>` of the Vet’s Specialties is returned
+   </td>
+  </tr>
+  <tr>
+   <td>getSpecialties(): List&lt;Specialty>
+   </td>
+   <td>testGetSpecialties()
+   </td>
+   <td>Unsorted lists of specialties
+   </td>
+   <td>Assert that list of specialties sorted by name is returned
+   </td>
+  </tr>
+  <tr>
+   <td>getNrOfSpecialties(): int
+   </td>
+   <td>testGetNrOfSpecialties()
+   </td>
+   <td>3 specialties added to system
+   </td>
+   <td>Assert that when we call `testGetNrOfSpecialties()`, integer `3` is returned
+   </td>
+  </tr>
+  <tr>
+   <td>addSpectialty(Specialty): void
+   </td>
+   <td>testAddSpecialty()
+   </td>
+   <td>No specialties in the system 
+   </td>
+   <td>Assert that the new specialties has been added to the system (assert that the size of `specialties` has been increased by 1 and that it contains the newly added specialties)
+   </td>
+  </tr>
+</table>
+
+
+[PetTypeFormatterTests.java](https://github.com/McGill-ECSE429-Fall2022/project-proj-10/blob/master/src/test/java/org/springframework/samples/petclinic/service/PetTypeFormatterTests.java)
+
+
+<table>
+  <tr>
+   <td>Method Under Test
+   </td>
+   <td>Test Case Method Name
+   </td>
+   <td>Input
+   </td>
+   <td>Outputs
+   </td>
+  </tr>
+  <tr>
+   <td>parse(String text, Locale locale)
+   </td>
+   <td>shouldParse()
+   </td>
+   <td>2 pets in the system
+   </td>
+   <td>Assert that PetType was found (assert that name of type is equal to input)
+   </td>
+  </tr>
+  <tr>
+   <td>parse(String text, Locale locale)
+   </td>
+   <td>shouldThrowParseException()
+   </td>
+   <td>2 pets in the system
+   </td>
+   <td>Assert an exception from  ParseException class is thrown
+   </td>
+  </tr>
+</table>
+
+
+[PetValidatorTests.java](https://github.com/McGill-ECSE429-Fall2022/project-proj-10/blob/master/src/test/java/org/springframework/samples/petclinic/service/PetValidatorTests.java)
+
+
+<table>
+  <tr>
+   <td>Method Under Test
+   </td>
+   <td>Test Case Method Name
+   </td>
+   <td>Input
+   </td>
+   <td>Outputs
+   </td>
+  </tr>
+  <tr>
+   <td>validate(Object obj, Errors errors): void
+   </td>
+   <td>testValidate()
+   </td>
+   <td>- name has a length
+<p>
+- pet is not new (has an id)
+<p>
+- pet type is not null
+<p>
+- pet has a birthdate
+   </td>
+   <td>Assert that there were no errors
+   </td>
+  </tr>
+  <tr>
+   <td>validate(Object obj, Errors errors): void
+   </td>
+   <td>testValidate_allWrong()
+   </td>
+   <td>- name does not have a length
+<p>
+- pet is new (no id) and pet type is not null
+<p>
+- pet does not have a birthdate
+   </td>
+   <td>Assert that there were errors for the name, type and birthdate
+   </td>
+  </tr>
+  <tr>
+   <td>validate(Object obj, Errors errors): void
+   </td>
+   <td>testValidate_MissingName()
+   </td>
+   <td>- name does not have a length
+<p>
+- pet is not new (has an id)
+<p>
+- pet type is not null
+<p>
+- pet has a birthdate
+   </td>
+   <td>Assert that there were errors for the name
+   </td>
+  </tr>
+  <tr>
+   <td>validate(Object obj, Errors errors): void
+   </td>
+   <td>testValidate_MissingBirthDate()
+   </td>
+   <td>- name has a length
+<p>
+- pet is not new (has an id)
+<p>
+- pet type is not null
+<p>
+- pet does not have a birthdate
+   </td>
+   <td>Assert that there were errors for the birth date
+   </td>
+  </tr>
+  <tr>
+   <td>validate(Object obj, Errors errors): void
+   </td>
+   <td>testValidate_MissingIdAndType()
+   </td>
+   <td>- name has a length
+<p>
+- pet is new (no id) and pet type is not null
+<p>
+- pet has a birthdate
+   </td>
+   <td>Assert that there were errors for the type
+   </td>
+  </tr>
+  <tr>
+   <td>validate(Object obj, Errors errors): void
+   </td>
+   <td>testValidate_MissingId()
+   </td>
+   <td>- name has a length
+<p>
+- pet type is not null
+<p>
+- pet has a birthdate
+   </td>
+   <td>Assert that there were no errors
+   </td>
+  </tr>
+  <tr>
+   <td>validate(Object obj, Errors errors): void
+   </td>
+   <td>testValidate_MissingType()
+   </td>
+   <td>- name has a length
+<p>
+- pet is not new (has an id)
+<p>
+- pet has a birthdate
+   </td>
+   <td>Assert that there were no errors
+   </td>
+  </tr>
+</table>
+
+## Achieved Coverage
+
+Here are the results from running our unit tests for the model classes:
+![image](https://user-images.githubusercontent.com/70775435/199065716-18ec7f75-43c6-42bd-8e4f-64b272ab1089.png)
+
+
+We passed our goal of 75% line coverage with 76% line coverage for the model classes. It is important to note that nearly all the methods that lacked coverage were trivial getters and setters. There was only one case where our tests failed to fully cover a method that we tested. This was for the `getVisitsInternal()` method in the Pet class and it happened because the code is unreachable. In the method, a variable is compared to null, which can never happen as it is initialized to a different value on line 62 `private Set<Visit> visits = new LinkedHashSet<>()`. Due to this method, we only achieved a branch coverage of 50% for the Pet class, while still obtaining 95% for all model classes. Note that we are not allowed to modify the source code for the unit tests, so we are not able to change this. Similarly, we are unable to test the `getVetList()` method with multiple Vets in the Vets class because there is no setter for the private variable.
+
+### Screenshot of getVisitsInternal() in Pet.java
+![image](https://user-images.githubusercontent.com/70775435/198755089-7269db66-9126-4b89-9e55-8b1e8faf0038.png)
+
+Here are the results from running our unit tests for the service classes:
+![image](https://user-images.githubusercontent.com/70775435/198754990-fb9cd2b4-9731-458b-8ef7-9e381b127c09.png)
+
+For the service classes, we achieved full (100%) line coverage. Naturally, full line coverage also implies full branch coverage. This is not very surprising as we wrote tests for all methods since none of them were trivial. 
+
+
+
+## Failed Tests
+We had no failed tests. This is likely because we went with the white-box testing approach rather than black-box testing. Tests written in this manner are testing only the code itself and not the full method from an outside perspective. 
+
+As an example of when this would differ, we can look at the `addPet(Pet pet)` method in the Owner class. Here, our white-box tests pass, although from a black-box perspective we may have different results. Based on our view, we should not be setting the pet’s owner if we are not adding the pet to the owner’s list of pets.
+
+### Screenshot of `addPet(Pet pet)` method from Owner.java
+![image](https://user-images.githubusercontent.com/70775435/198786551-41638704-d688-4557-bae9-733f62e180be.png)
+
+### Outcome of running tests for model classes: 27/27 tests pass
+![image](https://user-images.githubusercontent.com/70815823/199036669-f653e900-ccf1-4420-8ebd-aa879701f53b.png)
+
+### Outcome of running tests for service classes: 12/12 tests pass
+![image](https://user-images.githubusercontent.com/70815823/199036775-614181d7-b5dc-4411-a33a-87f27bdea1ac.png)
+
+
+
+
